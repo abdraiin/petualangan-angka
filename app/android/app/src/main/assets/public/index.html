@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petualangan Angka</title>
+<style>
+:root{--bg1:#5ec8ff;--bg2:#c9f5d9;--card:rgba(255,255,255,.93);--ink:#2b2d42;--accent:#ff7a59;--pri:#6c5ce7;--hill:#7bd88f}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{position:relative;font-family:system-ui,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:linear-gradient(170deg,var(--bg1),var(--bg2));overflow:hidden}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#bg span{position:absolute;bottom:-12%;color:#fff;opacity:.3;font-weight:800;animation:rise linear infinite}
+.hill{position:fixed;left:-15%;right:-15%;bottom:-9vh;height:24vh;background:var(--hill);border-radius:50% 50% 0 0;opacity:.85}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 18px) 18px 24px;overflow-y:auto;text-align:center}
+.screen.on{display:flex;animation:in .45s ease}
+.wrap{margin:auto 0;width:100%;max-width:460px}
+h1{font-size:2.6rem;margin:.1em 0;line-height:1.05;text-shadow:0 3px 0 rgba(0,0,0,.12)}
+h2{margin:.3em 0}
+.mascot{font-size:6rem;display:inline-block;animation:bounce 1.6s ease-in-out infinite}
+.sub{font-size:1.2rem;opacity:.85;margin-bottom:26px}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;border:0;border-radius:20px;padding:14px 24px;background:var(--accent);color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.18);margin:6px 4px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.btn.ghost{background:var(--card);color:var(--ink)}
+.play{font-size:2rem;padding:18px 56px;animation:pulse 1.6s infinite}
+.back{align-self:flex-start}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+.tile{font:inherit;font-weight:600;font-size:1.05rem;color:var(--ink);background:var(--card);border:0;border-radius:24px;padding:22px 8px;box-shadow:0 8px 20px rgba(0,0,0,.15);animation:pop .5s backwards}
+.tile:active{transform:scale(.95)}
+.tile span{display:block;font-size:2.6rem;margin-bottom:6px}
+.grid .tile:nth-child(2){animation-delay:.08s}.grid .tile:nth-child(3){animation-delay:.16s;grid-column:span 2}
+.card{background:var(--card);border-radius:24px;padding:20px;box-shadow:0 8px 20px rgba(0,0,0,.15);text-align:left;animation:pop .4s}
+.ex{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.ex b{background:rgba(108,92,231,.15);border-radius:14px;padding:10px 14px;font-size:1.3rem}
+.tip{background:rgba(255,200,60,.28);border-radius:14px;padding:10px 14px}
+.vid{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);background:var(--card);border-radius:20px;padding:14px 16px;margin-bottom:12px;text-align:left;box-shadow:0 6px 14px rgba(0,0,0,.12);animation:pop .4s backwards}
+.vid span{font-size:2.2rem}
+#qr{display:inline-block;background:#fff;padding:12px;border-radius:18px;margin:10px 0;animation:pop .5s}
+#qr img{display:block;width:230px;height:230px;image-rendering:pixelated}
+#qlink{font-size:.8rem;word-break:break-all;opacity:.75}
+details{margin-top:16px;text-align:left}
+summary{cursor:pointer;font-weight:600;text-align:center}
+input{width:100%;font:inherit;padding:12px;border-radius:14px;border:2px solid var(--pri);margin:10px 0}
+@keyframes in{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes rise{from{transform:translateY(0) rotate(0)}to{transform:translateY(-120vh) rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="bg"></div><div class="hill"></div>
+
+<section class="screen on" id="s-home"><div class="wrap">
+  <div class="mascot">🦉</div>
+  <h1>Petualangan<br>Angka</h1>
+  <p class="sub">Belajar Matematika SD jadi seru!</p>
+  <button class="btn play" data-go="menu">▶ Main</button>
+</div></section>
+
+<section class="screen" id="s-menu">
+  <button class="btn ghost back" data-go="home">‹ Beranda</button>
+  <div class="wrap"><h2>Pilih Petualanganmu</h2>
+    <div class="grid">
+      <button class="tile" data-go="materi"><span>📘</span>Materi</button>
+      <button class="tile" data-go="video"><span>🎬</span>Video Penjelasan</button>
+      <button class="tile" data-go="qr"><span>🎮</span>Kuis (Scan QR)</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="s-materi">
+  <button class="btn ghost back" data-go="menu">‹ Menu</button>
+  <div class="wrap"><h2>📘 Materi</h2><div class="grid" id="mlist"></div></div>
+</section>
+
+<section class="screen" id="s-detail">
+  <button class="btn ghost back" data-go="materi">‹ Materi</button>
+  <div class="wrap"><div class="card" id="mdetail"></div></div>
+</section>
+
+<section class="screen" id="s-video">
+  <button class="btn ghost back" data-go="menu">‹ Menu</button>
+  <div class="wrap"><h2>🎬 Video Penjelasan</h2><div id="vlist"></div></div>
+</section>
+
+<section class="screen" id="s-qr">
+  <button class="btn ghost back" data-go="menu">‹ Menu</button>
+  <div class="wrap">
+    <h2>🎮 Kuis untuk Semua</h2>
+    <p>Scan kode ini dengan kamera HP. Kuis langsung terbuka, tanpa install aplikasi.</p>
+    <div id="qr"></div>
+    <div id="qlink"></div>
+    <details id="setup"><summary>⚙️ Atur alamat kuis (untuk guru)</summary>
+      <p>Tempel alamat halaman kuis online (hasil upload <b>quiz.html</b>), lalu simpan.</p>
+      <input id="qurl" type="url" placeholder="https://namasitus.netlify.app/quiz.html">
+      <button class="btn" id="qsave">Simpan</button>
+    </details>
+  </div>
+</section>
+
+<script src="qrcode.js"></script>
+<script>
+/* Isi alamat kuis di sini, atau tempel lewat menu "Atur alamat kuis" di dalam aplikasi */
+const QUIZ_URL='';
+
+const MATERI=[
+ {i:'➕',t:'Penjumlahan',d:'Menjumlahkan berarti menggabungkan dua bilangan atau lebih menjadi satu jumlah.',ex:['12 + 5 = 17','28 + 14 = 42'],tip:'Mulai dari satuan, lalu puluhan. Jika hasil satuan lebih dari 9, simpan 1 ke puluhan.'},
+ {i:'➖',t:'Pengurangan',d:'Mengurangi berarti mengambil sebagian dari suatu bilangan sehingga tersisa selisihnya.',ex:['20 − 8 = 12','63 − 28 = 35'],tip:'Jika satuan atas lebih kecil, pinjam 1 puluhan dari kolom sebelah.'},
+ {i:'✖️',t:'Perkalian',d:'Perkalian adalah penjumlahan berulang. 4 × 3 berarti 4 + 4 + 4.',ex:['6 × 7 = 42','9 × 8 = 72'],tip:'Hafalkan tabel perkalian 1 sampai 10 sedikit demi sedikit setiap hari.'},
+ {i:'➗',t:'Pembagian',d:'Pembagian adalah membagi rata suatu bilangan. Kebalikan dari perkalian.',ex:['24 ÷ 6 = 4','56 ÷ 8 = 7'],tip:'Jika ragu, cek dengan perkalian: 4 × 6 = 24, jadi 24 ÷ 6 = 4.'}
+];
+const VIDEOS=[
+ {t:'Belajar Penjumlahan',q:'belajar penjumlahan kelas 2 SD'},
+ {t:'Belajar Pengurangan',q:'belajar pengurangan kelas 2 SD'},
+ {t:'Perkalian Mudah',q:'belajar perkalian kelas 2 SD'},
+ {t:'Pembagian Mudah',q:'belajar pembagian kelas 3 SD'}
+];
+const $=s=>document.querySelector(s);
+
+const SYM=['1','2','3','4','5','7','8','9','+','−','×','÷','=','★'];
+for(let i=0;i<16;i++){const s=document.createElement('span');s.textContent=SYM[i%SYM.length];
+ s.style.cssText='left:'+Math.random()*95+'%;font-size:'+(24+Math.random()*40)+'px;animation-duration:'+(10+Math.random()*12)+'s;animation-delay:-'+Math.random()*20+'s';
+ $('#bg').append(s);}
+
+function go(id,push=true){
+ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+id));
+ if(push)history.pushState({id:id},'');
+ if(id==='qr')makeQR();
+}
+window.addEventListener('popstate',e=>go((e.state&&e.state.id)||'home',false));
+document.addEventListener('click',e=>{
+ const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return;}
+ const m=e.target.closest('[data-m]');if(m)showMateri(+m.dataset.m);
+});
+
+$('#mlist').innerHTML=MATERI.map((m,i)=>'<button class="tile" data-m="'+i+'"><span>'+m.i+'</span>'+m.t+'</button>').join('');
+function showMateri(i){
+ const m=MATERI[i];
+ $('#mdetail').innerHTML='<h2>'+m.i+' '+m.t+'</h2><p>'+m.d+'</p><div class="ex">'+m.ex.map(e=>'<b>'+e+'</b>').join('')+'</div><p class="tip">💡 '+m.tip+'</p>';
+ go('detail');
+}
+$('#vlist').innerHTML=VIDEOS.map((v,i)=>'<a class="vid" style="animation-delay:'+i*.08+'s" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.q)+'"><span>▶️</span><div><b>'+v.t+'</b><br><small>Tonton di YouTube</small></div></a>').join('');
+
+function getUrl(){let u=QUIZ_URL;try{u=localStorage.getItem('quizUrl')||QUIZ_URL;}catch(e){}return u;}
+function makeQR(){
+ const u=getUrl(),box=$('#qr');
+ if(!u){box.style.display='none';$('#qlink').textContent='Alamat kuis belum diatur. Buka "Atur alamat kuis" di bawah.';$('#setup').open=true;return;}
+ box.style.display='inline-block';
+ const q=qrcode(0,'M');q.addData(u);q.make();
+ box.innerHTML='<img alt="QR kuis" src="'+q.createDataURL(8,0)+'">';
+ $('#qlink').textContent=u;
+}
+$('#qsave').onclick=()=>{
+ const v=$('#qurl').value.trim();
+ if(!/^https?:\/\//.test(v)){alert('Alamat harus diawali https://');return;}
+ try{localStorage.setItem('quizUrl',v);}catch(e){}
+ makeQR();
+};
+</script>
+</body>
+</html>

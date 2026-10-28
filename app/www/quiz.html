@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kuis Petualangan Angka</title>
+<style>
+:root{--bg1:#5ec8ff;--bg2:#c9f5d9;--card:rgba(255,255,255,.93);--ink:#2b2d42;--accent:#ff7a59;--pri:#6c5ce7;--ok:#2fbf71;--bad:#ef476f;--hill:#7bd88f}
+@media (prefers-color-scheme:dark){:root{--bg1:#1b1f5e;--bg2:#2a6f7a;--card:rgba(38,42,82,.94);--ink:#f2f3ff;--hill:#2f7d5a}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{position:relative;font-family:system-ui,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:linear-gradient(170deg,var(--bg1),var(--bg2));background-color:var(--bg1);overflow:hidden}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#bg span{position:absolute;bottom:-12%;color:#fff;opacity:.3;font-weight:800;animation:rise linear infinite}
+.hill{position:fixed;left:-15%;right:-15%;bottom:-9vh;height:24vh;background:var(--hill);border-radius:50% 50% 0 0;opacity:.85}
+#app{position:absolute;inset:0;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 18px) 18px 24px;display:flex;flex-direction:column;align-items:center}
+.wrap{margin:auto 0;width:100%;max-width:460px;text-align:center;animation:in .45s ease}
+h1{font-size:2.3rem;margin:.1em 0;line-height:1.05}
+h2{margin:.3em 0}
+.mascot{font-size:5rem;display:inline-block;animation:bounce 1.6s ease-in-out infinite}
+.btn{font:inherit;font-weight:700;font-size:1.1rem;border:0;border-radius:20px;padding:14px 24px;background:var(--accent);color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.18);margin:6px 4px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.btn.ghost{background:var(--card);color:var(--ink)}
+.play{font-size:1.8rem;padding:16px 48px;animation:pulse 1.6s infinite}
+.bar{height:12px;border-radius:9px;background:rgba(255,255,255,.55);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .5s}
+.meta{opacity:.8;margin:8px 0}
+.qt{font-size:1.7rem;margin:14px 0 18px}
+.opt{display:block;width:100%;margin:10px 0;font-size:1.4rem}
+.opt.ok{background:var(--ok);color:#fff;animation:pulse .6s}
+.opt.bad{background:var(--bad);color:#fff;animation:shake .45s}
+.card{background:var(--card);border-radius:24px;padding:20px;box-shadow:0 8px 20px rgba(0,0,0,.15);animation:pop .4s}
+.stars{font-size:3.4rem;animation:bounce 1.2s infinite}
+.cf{position:fixed;top:-20px;width:10px;height:16px;z-index:9;animation:fall 1.6s ease-in forwards}
+@keyframes in{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+@keyframes rise{from{transform:translateY(0) rotate(0)}to{transform:translateY(-120vh) rotate(360deg)}}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.9}}
+</style>
+</head>
+<body>
+<div id="bg"></div><div class="hill"></div>
+<div id="app"><div class="wrap" id="box"></div></div>
+<script>
+const QUIZ=[
+ {q:'25 + 17 = ?',a:['42','32','41','43'],c:0},
+ {q:'63 − 28 = ?',a:['35','45','36','34'],c:0},
+ {q:'8 × 7 = ?',a:['54','56','48','63'],c:1},
+ {q:'72 ÷ 9 = ?',a:['7','9','8','6'],c:2},
+ {q:'Ibu membeli 3 bungkus permen. Tiap bungkus berisi 12 permen. Berapa permen seluruhnya?',a:['36','15','24','38'],c:0},
+ {q:'100 − 45 + 10 = ?',a:['65','55','45','75'],c:0},
+ {q:'6 × 9 = ?',a:['54','63','45','56'],c:0},
+ {q:'56 kelereng dibagi rata kepada 8 anak. Tiap anak mendapat berapa kelereng?',a:['6','7','8','9'],c:1}
+];
+const $=s=>document.querySelector(s);
+const SYM=['1','2','3','4','5','7','8','9','+','−','×','÷','=','★'];
+for(let i=0;i<16;i++){const s=document.createElement('span');s.textContent=SYM[i%SYM.length];
+ s.style.cssText='left:'+Math.random()*95+'%;font-size:'+(24+Math.random()*40)+'px;animation-duration:'+(10+Math.random()*12)+'s;animation-delay:-'+Math.random()*20+'s';
+ $('#bg').append(s);}
+
+let Q=[],qi=0,score=0,lock=false;
+function intro(){
+ $('#box').innerHTML='<div class="mascot">🦉</div><h1>Kuis<br>Petualangan Angka</h1><p>8 soal matematika. Siap?</p><button class="btn play" id="go">▶ Mulai</button>';
+ $('#go').onclick=start;
+}
+function start(){Q=[...QUIZ].sort(()=>Math.random()-.5);qi=0;score=0;showQ();}
+function showQ(){
+ lock=false;const q=Q[qi];
+ $('#box').innerHTML='<div class="bar"><i style="width:'+qi/Q.length*100+'%"></i></div><p class="meta">Soal '+(qi+1)+' dari '+Q.length+' · ⭐ '+score+'</p><h2 class="qt">'+q.q+'</h2>'+q.a.map((a,i)=>'<button class="btn ghost opt" data-i="'+i+'">'+a+'</button>').join('');
+ document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>pick(+b.dataset.i));
+}
+function pick(i){
+ if(lock)return;lock=true;
+ const q=Q[qi],b=[...document.querySelectorAll('.opt')];
+ b[q.c].classList.add('ok');
+ if(i===q.c){score++;confetti();}else b[i].classList.add('bad');
+ setTimeout(()=>{qi++;qi<Q.length?showQ():result();},1200);
+}
+function result(){
+ const st=score>=7?3:score>=5?2:1;
+ const msg=score===Q.length?'Sempurna! Kamu juara!':score>=5?'Hebat! Terus belajar ya.':'Ayo coba lagi, pasti bisa!';
+ $('#box').innerHTML='<div class="card"><div class="stars">'+'⭐'.repeat(st)+'☆'.repeat(3-st)+'</div><h2>Skor: '+score+'/'+Q.length+'</h2><p>'+msg+'</p><button class="btn" id="again">Main Lagi</button></div>';
+ $('#again').onclick=start;
+ if(score===Q.length)confetti();
+}
+function confetti(){
+ const C=['#ff7a59','#ffd166','#2fbf71','#6c5ce7','#4cc9f0','#ef476f'];
+ for(let i=0;i<26;i++){const d=document.createElement('i');d.className='cf';
+  d.style.cssText='left:'+Math.random()*100+'%;background:'+C[i%C.length]+';animation-delay:'+Math.random()*.4+'s';
+  document.body.append(d);setTimeout(()=>d.remove(),2200);}
+}
+intro();
+</script>
+</body>
+</html>
